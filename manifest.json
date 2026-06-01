@@ -1,0 +1,47 @@
+{
+  "manifest_version": 3,
+  "name": "AI/検索アシスタント v4.1 (Bing対応)",
+  "version": "4.1.0",
+  "description": "各AIチャットや検索エンジンから、GoogleやPerplexity, Bingなどへシームレスに検索を転送します。",
+  "permissions": [
+    "storage",
+    "contextMenus",
+    "scripting",
+    "activeTab",
+    "tabs"
+  ],
+  "host_permissions": [
+    "https://*.google.com/*",
+    "https://chat.openai.com/*",
+    "https://gemini.google.com/*",
+    "https://claude.ai/*",
+    "https://twitter.com/*",
+    "https://duckduckgo.com/*",
+    "https://*.bing.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://*.google.com/*",
+        "https://chat.openai.com/*",
+        "https://gemini.google.com/*",
+        "https://claude.ai/*",
+        "https://twitter.com/*",
+        "https://duckduckgo.com/*",
+        "https://*.bing.com/*"
+      ],
+      "js": ["content.js"]
+    }
+  ]
+}

@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>AI検索ポップアップ</title>
+  <style>
+    body { font-family: sans-serif; min-width: 320px; padding: 16px; background: #f8f9fa; }
+    h3 { margin-top: 0; }
+    #inputArea { display: flex; gap: 8px; margin-bottom: 10px; }
+    #inputText { flex: 1; font-size: 15px; padding: 6px; border-radius: 4px; border: 1px solid #ccc; }
+    #saveBtn { padding: 6px 12px; font-size: 14px; border-radius: 4px; border: none; background: #1976d2; color: #fff; font-weight: bold; cursor: pointer; }
+    #savedText { background: #fff; border-radius: 4px; border: 1px solid #eee; padding: 8px; min-height: 32px; margin-bottom: 12px; color: #333; }
+    .search-btns { display: flex; gap: 8px; margin-bottom: 8px; }
+    .search-btn { flex: 1; display: flex; align-items: center; justify-content: center; gap: 4px; font-size: 13px; font-weight: bold; border: none; border-radius: 4px; padding: 7px 0; cursor: pointer; transition: filter 0.15s; }
+    .search-btn:active { filter: brightness(0.92); }
+    .google { background: #4285F4; color: #fff; }
+    .perplexity { background: #6C47FF; color: #fff; }
+    .chatgpt { background: #10A37F; color: #fff; }
+    .duck { background: #DE5833; color: #fff; }
+    .ecosia { background: #85B716; color: #fff; }
+  </style>
+</head>
+<body>
+  <h3>AI横断検索</h3>
+  <div id="intro" style="background:#fff;border-radius:8px;border:1px solid #e0e0e0;padding:12px 14px 10px 14px;margin-bottom:16px;box-shadow:0 1px 4px #0001;">
+    <div style="font-size:17px;font-weight:700;margin-bottom:4px;">囁きのプリズム</div>
+    <div style="font-size:13px;color:#555;line-height:1.7;">
+      検索窓からワンクリックで複数サービスを横断検索できる拡張機能です。
+    </div>
+  </div>
+  <div id="inputArea">
+    <input id="inputText" type="text" placeholder="検索したいテキストを入力" />
+    <button id="saveBtn">保存</button>
+    <button id="searchBtn" style="margin-left:4px;background:#4285F4;color:#fff;font-weight:bold;padding:6px 12px;border-radius:4px;border:none;cursor:pointer;display:flex;align-items:center;gap:4px;">
+      <span id="searchIcon">🔍</span><span id="searchLabel">Google</span>
+    </button>
+    <select id="serviceSelect" style="margin-left:4px;padding:5px 8px;border-radius:4px;border:1px solid #ccc;font-size:13px;">
+      <option value="google">Google</option>
+      <option value="perplexity">Perplexity</option>
+      <option value="chatgpt">ChatGPT</option>
+      <option value="claude">Claude</option>
+      <option value="bing">Bing</option>
+      <option value="duckduckgo">DuckDuckGo</option>
+    </select>
+  </div>
+  <div id="historyArea" style="background:#fff;border-radius:4px;border:1px solid #eee;padding:8px;min-height:32px;margin-bottom:12px;color:#333;">
+    <div style="font-size:13px;font-weight:bold;margin-bottom:4px;">入力履歴</div>
+    <ul id="historyList" style="list-style:none;padding:0;margin:0;"></ul>
+    <div id="noHistory" style="color:#aaa;font-size:12px;">履歴はありません</div>
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>
