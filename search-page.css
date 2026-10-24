@@ -1,0 +1,6 @@
+#nz-search-tools{position:fixed;right:12px;bottom:14px;z-index:2147483000;font:12px system-ui,sans-serif;color:#17334e}#nz-search-tools button{cursor:pointer;border:1px solid #c5d9e9;background:white;color:#123a58;border-radius:8px;padding:7px 9px;box-shadow:0 3px 9px #0002}#nz-search-tools .nz-open{background:#183954;color:white}#nz-search-tools .nz-panel{display:none;background:white;border:1px solid #d3dee7;border-radius:10px;padding:12px;width:295px;box-shadow:0 5px 22px #0003;margin-bottom:8px}#nz-search-tools.nz-expanded .nz-panel{display:block}#nz-search-tools .nz-links{display:flex;gap:4px;flex-wrap:wrap;margin:8px 0}#nz-search-tools label{display:block;margin:6px 0}#nz-search-tools .nz-tip{font-size:11px;color:#536779;line-height:1.5}body.nz-hide-ads #tads,body.nz-hide-ads #tadsb,body.nz-hide-ads .uEierd{display:none!important}body.nz-hide-ai [data-attrid*="ai_overview"],body.nz-hide-ai #m-x-content,body.nz-hide-ai [data-attrid*="SGE"]{display:none!important}
+
+/* Avoid overlapping original Google Cleaner gear on Google results. */
+body:has(#gso-wrapper) #nz-search-tools{right:77px;bottom:18px}
+
+#nz-search-tools,#nz-search-tools *{font-family:Arial,-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN","Hiragino Sans","Yu Gothic",Meiryo,sans-serif !important;}

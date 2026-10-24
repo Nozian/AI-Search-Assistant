@@ -1,53 +1,20 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-  <meta charset="UTF-8">
-  <title>AI検索ポップアップ</title>
-  <style>
-    body { font-family: sans-serif; min-width: 320px; padding: 16px; background: #f8f9fa; }
-    h3 { margin-top: 0; }
-    #inputArea { display: flex; gap: 8px; margin-bottom: 10px; }
-    #inputText { flex: 1; font-size: 15px; padding: 6px; border-radius: 4px; border: 1px solid #ccc; }
-    #saveBtn { padding: 6px 12px; font-size: 14px; border-radius: 4px; border: none; background: #1976d2; color: #fff; font-weight: bold; cursor: pointer; }
-    #savedText { background: #fff; border-radius: 4px; border: 1px solid #eee; padding: 8px; min-height: 32px; margin-bottom: 12px; color: #333; }
-    .search-btns { display: flex; gap: 8px; margin-bottom: 8px; }
-    .search-btn { flex: 1; display: flex; align-items: center; justify-content: center; gap: 4px; font-size: 13px; font-weight: bold; border: none; border-radius: 4px; padding: 7px 0; cursor: pointer; transition: filter 0.15s; }
-    .search-btn:active { filter: brightness(0.92); }
-    .google { background: #4285F4; color: #fff; }
-    .perplexity { background: #6C47FF; color: #fff; }
-    .chatgpt { background: #10A37F; color: #fff; }
-    .duck { background: #DE5833; color: #fff; }
-    .ecosia { background: #85B716; color: #fff; }
-  </style>
-</head>
-<body>
-  <h3>AI横断検索</h3>
-  <div id="intro" style="background:#fff;border-radius:8px;border:1px solid #e0e0e0;padding:12px 14px 10px 14px;margin-bottom:16px;box-shadow:0 1px 4px #0001;">
-    <div style="font-size:17px;font-weight:700;margin-bottom:4px;">囁きのプリズム</div>
-    <div style="font-size:13px;color:#555;line-height:1.7;">
-      検索窓からワンクリックで複数サービスを横断検索できる拡張機能です。
-    </div>
-  </div>
-  <div id="inputArea">
-    <input id="inputText" type="text" placeholder="検索したいテキストを入力" />
-    <button id="saveBtn">保存</button>
-    <button id="searchBtn" style="margin-left:4px;background:#4285F4;color:#fff;font-weight:bold;padding:6px 12px;border-radius:4px;border:none;cursor:pointer;display:flex;align-items:center;gap:4px;">
-      <span id="searchIcon">🔍</span><span id="searchLabel">Google</span>
-    </button>
-    <select id="serviceSelect" style="margin-left:4px;padding:5px 8px;border-radius:4px;border:1px solid #ccc;font-size:13px;">
-      <option value="google">Google</option>
-      <option value="perplexity">Perplexity</option>
-      <option value="chatgpt">ChatGPT</option>
-      <option value="claude">Claude</option>
-      <option value="bing">Bing</option>
-      <option value="duckduckgo">DuckDuckGo</option>
-    </select>
-  </div>
-  <div id="historyArea" style="background:#fff;border-radius:4px;border:1px solid #eee;padding:8px;min-height:32px;margin-bottom:12px;color:#333;">
-    <div style="font-size:13px;font-weight:bold;margin-bottom:4px;">入力履歴</div>
-    <ul id="historyList" style="list-style:none;padding:0;margin:0;"></ul>
-    <div id="noHistory" style="color:#aaa;font-size:12px;">履歴はありません</div>
-  </div>
-  <script src="popup.js"></script>
-</body>
-</html>
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Search Toolkit</title><link rel="stylesheet" href="popup.css"></head><body>
+<nav class="nz-mode-tabs"><button type="button" data-mode="search" class="selected">横断検索</button><button type="button" data-mode="prism">メディアバイアス PRISM</button></nav><div id="mode-unified"><header><div class="brand">N<span>+</span></div><div><b>Search Toolkit</b><small>検索を整理して、比較する。</small></div></header>
+<section><label for="query">検索キーワード・AIへの質問</label><textarea id="query" rows="3" placeholder="例：高崎の交通政策を比較したい"></textarea><div class="inline"><button id="copy">コピー</button><button id="save">履歴に保存</button><button id="clear">入力を消す</button></div></section>
+<section><b>検索先を選択</b><div id="engines" class="engines"></div><button id="open" class="primary">選んだ検索先を一括で開く</button><p id="status" aria-live="polite"></p></section>
+<section><b>Google検索の表示整理</b><label class="toggle"><input type="checkbox" id="hideAds"> 広告枠を非表示（表示上のみ）</label><label class="toggle"><input type="checkbox" id="hidePaa"> 「他の人はこちらも質問」を非表示</label><label class="toggle"><input type="checkbox" id="hideAi"> AI Overviewを非表示（表示上のみ）</label><div class="inline"><button id="webMode">Googleの「ウェブ」表示で検索</button></div></section>
+<section><b>最近の検索</b><div id="history" class="history"></div></section>
+<footer>AIサイトは入力内容の自動送信・自動投稿は行いません。質問文はコピーして貼り付けてね。</footer></div>
+<div id="mode-prism" hidden>
+ <header><div class="brand">P<span>R</span></div><div><b>Media Bias PRISM</b><small>要約・偏り分析・検証のための補助ツール</small></div></header>
+ <section><b>現在のページを調べる</b><p>今開いているニュース記事や投稿の本文を読み取り、AIに渡す分析用の質問を作るよ。</p>
+ <label for="prismProvider">利用するAI</label><select id="prismProvider"><option value="chatgpt">ChatGPT</option><option value="perplexity">Perplexity</option><option value="grok">Grok</option><option value="gemini">Gemini</option><option value="claude">Claude</option></select>
+ <div id="prismActions" class="prism-actions"><button data-analyze="summary">要約</button><button data-analyze="bias">バイアス分析</button><button data-analyze="fact">ファクトチェック</button><button data-analyze="deep">深掘り検索</button></div>
+ <p id="prismStatus" aria-live="polite"></p>
+ </section>
+ <section><b>ページ内PRISMボタン</b><label class="toggle"><input id="prismEnabled" type="checkbox" checked> PRISMを使う</label>
+ <label class="toggle"><input id="prismHover" type="checkbox" checked> Google検索・ニュース・Xの記事カードに表示</label>
+ <p>記事にマウスを載せると4つのボタンが出るよ。AIはボタンを押したときだけ開く仕組み。</p></section>
+ <footer>PRISMの分析は事実の自動認定ではありません。裏付け資料の確認が必要です。AIの入力欄への自動挿入を試みます。自動送信・真偽の自動認定はしません。</footer>
+</div>
+<script src="popup.js"></script><script src="prism/prompts.js"></script><script src="prism/popup.js"></script></body></html>

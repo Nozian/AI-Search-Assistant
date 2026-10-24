@@ -1,47 +1,114 @@
 {
   "manifest_version": 3,
-  "name": "AI/検索アシスタント v4.1 (Bing対応)",
-  "version": "4.1.0",
-  "description": "各AIチャットや検索エンジンから、GoogleやPerplexity, Bingなどへシームレスに検索を転送します。",
+  "name": "Nozian Search Toolkit + Media Bias PRISM",
+  "version": "3.1.0",
+  "description": "Google Cleanerと横断検索を維持、PRISMはAI入力欄へ自動挿入（送信なし）",
   "permissions": [
     "storage",
     "contextMenus",
-    "scripting",
+    "tabs",
     "activeTab",
-    "tabs"
+    "scripting"
   ],
   "host_permissions": [
-    "https://*.google.com/*",
-    "https://chat.openai.com/*",
-    "https://gemini.google.com/*",
     "https://claude.ai/*",
-    "https://twitter.com/*",
-    "https://duckduckgo.com/*",
-    "https://*.bing.com/*"
+    "https://gemini.google.com/*",
+    "https://chatgpt.com/*",
+    "https://www.perplexity.ai/*",
+    "https://perplexity.ai/*",
+    "https://grok.com/*"
   ],
+  "action": {
+    "default_title": "Search Toolkit / Media Bias PRISM",
+    "default_popup": "popup.html"
+  },
   "background": {
     "service_worker": "background.js"
-  },
-  "action": {
-    "default_popup": "popup.html",
-    "default_icon": {
-      "16": "icons/icon16.png",
-      "48": "icons/icon48.png",
-      "128": "icons/icon128.png"
-    }
   },
   "content_scripts": [
     {
       "matches": [
-        "https://*.google.com/*",
-        "https://chat.openai.com/*",
-        "https://gemini.google.com/*",
-        "https://claude.ai/*",
-        "https://twitter.com/*",
-        "https://duckduckgo.com/*",
-        "https://*.bing.com/*"
+        "https://www.google.com/search*",
+        "https://www.google.co.jp/search*"
       ],
-      "js": ["content.js"]
+      "js": [
+        "sync-settings.js",
+        "legacy-google/content.js"
+      ],
+      "css": [
+        "legacy-google/styles.css"
+      ],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "https://www.google.com/search*",
+        "https://www.google.co.jp/search*",
+        "https://www.bing.com/search*",
+        "https://duckduckgo.com/*"
+      ],
+      "js": [
+        "search-page.js"
+      ],
+      "css": [
+        "search-page.css"
+      ],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "https://www.google.com/search*",
+        "https://www.google.co.jp/search*",
+        "https://www.bing.com/search*",
+        "https://duckduckgo.com/*",
+        "https://www.perplexity.ai/*",
+        "https://perplexity.ai/*",
+        "https://chat.openai.com/*",
+        "https://chatgpt.com/*",
+        "https://claude.ai/*",
+        "https://gemini.google.com/*",
+        "https://x.com/*",
+        "https://twitter.com/*"
+      ],
+      "js": [
+        "legacy-ai/content.js"
+      ],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "https://www.google.com/search*",
+        "https://www.google.co.jp/search*",
+        "https://news.google.com/*",
+        "https://news.yahoo.co.jp/*",
+        "https://x.com/*",
+        "https://twitter.com/*",
+        "https://www3.nhk.or.jp/*",
+        "https://www.nhk.or.jp/*",
+        "https://*.asahi.com/*",
+        "https://*.mainichi.jp/*",
+        "https://*.yomiuri.co.jp/*",
+        "https://*.nikkei.com/*",
+        "https://*.sankei.com/*",
+        "https://*.jiji.com/*",
+        "https://*.reuters.com/*",
+        "https://*.bbc.com/*",
+        "https://*.huffingtonpost.jp/*",
+        "https://*.tokyo-np.co.jp/*",
+        "https://*.47news.jp/*",
+        "https://*.newsweekjapan.jp/*",
+        "https://*.forbesjapan.com/*",
+        "https://*.bunshun.jp/*",
+        "https://*.president.jp/*"
+      ],
+      "js": [
+        "prism/prompts.js",
+        "prism/injector.js"
+      ],
+      "css": [
+        "prism/styles.css"
+      ],
+      "run_at": "document_idle"
     }
   ]
 }

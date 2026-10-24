@@ -1,0 +1,14 @@
+.nz-prism-bar, .nz-prism-bar *{box-sizing:border-box!important;font-family:Arial,-apple-system,BlinkMacSystemFont,'Hiragino Kaku Gothic ProN','Yu Gothic',Meiryo,sans-serif!important;line-height:1.4!important;text-align:left!important}
+.nz-prism-bar{z-index:2147483000!important;background:#14263c!important;color:white!important;display:flex!important;align-items:center!important;gap:4px!important;padding:7px!important;border-radius:9px!important;box-shadow:0 4px 20px #0005!important;max-width:calc(100vw - 18px)!important;width:max-content!important;flex-wrap:wrap!important}
+.nz-prism-bar strong{color:white!important;font:700 11px Arial,sans-serif!important;margin:0 5px 0 2px!important;letter-spacing:1px!important}
+.nz-prism-card-bar{position:absolute!important;left:8px!important;bottom:5px!important;visibility:hidden!important;opacity:0!important;transition:opacity .15s!important;pointer-events:none!important}
+*:hover>.nz-prism-card-bar,.nz-prism-card-bar:hover,.nz-prism-card-bar:focus-within{visibility:visible!important;opacity:1!important;pointer-events:auto!important}
+*:has(>.nz-prism-card-bar){position:relative!important}
+.nz-prism-bar .nz-prism-action{position:relative!important}
+.nz-prism-bar button{display:block!important;border:1px solid #55708d!important;background:#294564!important;color:white!important;padding:5px 7px!important;margin:0!important;border-radius:5px!important;font:12px Arial,'Hiragino Kaku Gothic ProN','Yu Gothic',sans-serif!important;white-space:nowrap!important;cursor:pointer!important}
+.nz-prism-menu{display:none!important;position:absolute!important;bottom:calc(100% + 4px)!important;left:0!important;min-width:175px!important;background:#f8fafc!important;border:1px solid #afc1d3!important;border-radius:6px!important;padding:5px!important;box-shadow:0 6px 16px #0005!important;z-index:2147483001!important}
+.nz-prism-menu.nz-prism-open,.nz-prism-action:hover>.nz-prism-menu,.nz-prism-action:focus-within>.nz-prism-menu{display:grid!important;gap:4px!important}
+.nz-prism-menu button{background:#eaf1f7!important;color:#112c43!important;border-color:#d7e1eb!important;width:100%!important}
+.nz-prism-floating{position:fixed!important;left:12px!important;bottom:14px!important;z-index:2147483000!important}
+#nz-prism-toast{position:fixed!important;left:12px!important;bottom:75px!important;background:#10243c!important;color:white!important;max-width:330px!important;padding:12px!important;border-radius:8px!important;z-index:2147483002!important;font:12px Arial,'Hiragino Kaku Gothic ProN',sans-serif!important}
+#nz-prism-toast[hidden]{display:none!important}
