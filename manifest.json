@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Nozian Search Toolkit + Media Bias PRISM",
-  "version": "3.1.0",
-  "description": "Google Cleanerと横断検索を維持、PRISMはAI入力欄へ自動挿入（送信なし）",
+  "version": "3.1.1",
+  "description": "Google Cleanerと横断検索を維持、PRISMはXの標準操作を妨げない折りたたみ式",
   "permissions": [
     "storage",
     "contextMenus",
@@ -66,9 +66,7 @@
         "https://chat.openai.com/*",
         "https://chatgpt.com/*",
         "https://claude.ai/*",
-        "https://gemini.google.com/*",
-        "https://x.com/*",
-        "https://twitter.com/*"
+        "https://gemini.google.com/*"
       ],
       "js": [
         "legacy-ai/content.js"
