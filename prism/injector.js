@@ -39,8 +39,24 @@
   }
   function notify(s){let n=document.querySelector('#nz-prism-toast');if(!n){n=document.createElement('div');n.id='nz-prism-toast';document.body.append(n);}n.textContent=s;n.hidden=false;clearTimeout(n._tid);n._tid=setTimeout(()=>n.hidden=true,4200);}
   function makeBar(record,standalone=false){
-    const el=document.createElement('div');el.className='nz-prism-bar'+(standalone?' nz-prism-floating':'');el.setAttribute('lang','ja');
-    const name=document.createElement('strong');name.textContent='PRISM';el.append(name);
+    const el=document.createElement('div');
+    const xCard=isX&&!standalone;
+    el.className='nz-prism-bar'+(standalone?' nz-prism-floating':'')+(xCard?' nz-prism-x-bar':'');
+    el.setAttribute('lang','ja');
+    if(xCard){
+      const toggle=document.createElement('button');toggle.type='button';toggle.className='nz-prism-x-toggle';
+      toggle.textContent='PRISM ▾';toggle.setAttribute('aria-expanded','false');
+      toggle.setAttribute('aria-label','PRISMの分析メニューを開く');
+      toggle.addEventListener('click',e=>{
+        e.preventDefault();e.stopPropagation();
+        const open=el.classList.toggle('nz-prism-expanded');
+        toggle.setAttribute('aria-expanded',String(open));
+        toggle.textContent=open?'PRISM ▴':'PRISM ▾';
+        if(!open)el.querySelectorAll('.nz-prism-menu.nz-prism-open').forEach(menu=>menu.classList.remove('nz-prism-open'));
+      });
+      el.append(toggle);
+    }
+    if(!xCard){const name=document.createElement('strong');name.textContent='PRISM';el.append(name);}
     for(const [kind,label] of labels){
       const slot=document.createElement('div');slot.className='nz-prism-action';
       const button=document.createElement('button');button.type='button';button.textContent=label;button.title=label;slot.append(button);
@@ -54,17 +70,36 @@
           b.addEventListener('click',e=>{e.stopPropagation();openAnalysis(kind,record,provider);});menu.append(b);
         }
       }
-      button.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();menu.classList.toggle('nz-prism-open');});
+      button.addEventListener('click',e=>{
+        e.preventDefault();e.stopPropagation();
+        const wasOpen=menu.classList.contains('nz-prism-open');
+        el.querySelectorAll('.nz-prism-menu.nz-prism-open').forEach(item=>item.classList.remove('nz-prism-open'));
+        if(!wasOpen)menu.classList.add('nz-prism-open');
+      });
       slot.append(menu);el.append(slot);
     }
     return el;
   }
   function decorateCard(card){
-    if(!card||card.dataset.nzPrismSeen ||card.closest('.nz-prism-bar,#gso-wrapper,#nz-search-panel'))return;
+    if(!card||card.closest('.nz-prism-bar,#gso-wrapper,#nz-search-panel'))return;
     const record=getRecord(card);if(!record.title||(!isX&&record.title.length<2))return;
-    card.dataset.nzPrismSeen='1';
+    const existing=card.querySelector('.nz-prism-card-bar');
+    if(existing&&card.dataset.nzPrismUrl===record.url)return;
+    existing?.remove();
     const el=makeBar(record);el.classList.add('nz-prism-card-bar');
-    card.appendChild(el);
+    if(isX){
+      // Keep the native reply/repost/like row untouched: insert below it in normal flow.
+      const groups=[...card.querySelectorAll('[role="group"]')];
+      const actions=groups.find(group=>group.closest('article[data-testid="tweet"]')===card
+        &&group.querySelector('[data-testid="like"],[data-testid="unlike"]'));
+      const anchor=actions?.parentElement;
+      if(anchor&&anchor.closest('article[data-testid="tweet"]')===card)anchor.insertAdjacentElement('afterend',el);
+      else card.appendChild(el);
+    }else{
+      card.appendChild(el);
+    }
+    card.dataset.nzPrismSeen='1';
+    card.dataset.nzPrismUrl=record.url;
   }
   function scan(){
     if(!enabled||!hoverEnabled||!isPreview)return;
