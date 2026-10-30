@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Nozian Search Toolkit + Media Bias PRISM",
-  "version": "3.1.2",
+  "version": "3.1.3",
   "description": "Google Cleanerと横断検索を維持、PRISMはXの標準操作を妨げない折りたたみ式",
   "permissions": [
     "storage",
