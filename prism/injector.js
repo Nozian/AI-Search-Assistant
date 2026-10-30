@@ -10,6 +10,13 @@
   const isYahooNews=hostname==='news.yahoo.co.jp';
   const isPreview=isX||isGoogle||isGoogleNews||isYahooNews;
   const labels=[['summary','要約'],['bias','バイアス分析'],['fact','ファクトチェック'],['deep','深掘り検索']];
+  // Native browser tooltips: short descriptions without adding UI over X's action row.
+  const descriptions={
+    summary:'投稿や記事の要点をAIに整理してもらいます。',
+    bias:'言葉の偏りや抜けている視点をAIに検討してもらいます。',
+    fact:'主張の根拠や真偽をAIに確認してもらいます。',
+    deep:'関連情報をGoogleやPerplexityで探します。'
+  };
   let enabled=true,hoverEnabled=true;
   const safeUrl=value=>{try{const x=new URL(value,location.href);return /^https?:$/.test(x.protocol)?x.href:''}catch{return ''}};
   const text=value=>String(value||'').replace(/\s+/g,' ').trim().slice(0,2000);
@@ -45,28 +52,31 @@
     el.setAttribute('lang','ja');
     if(xCard){
       const toggle=document.createElement('button');toggle.type='button';toggle.className='nz-prism-x-toggle';
-      toggle.textContent='PRISM ▾';toggle.setAttribute('aria-expanded','false');
+      toggle.textContent='PRISM ▾';toggle.title='投稿や記事を読み解く分析メニューを開きます。';toggle.setAttribute('aria-expanded','false');
       toggle.setAttribute('aria-label','PRISMの分析メニューを開く');
       toggle.addEventListener('click',e=>{
         e.preventDefault();e.stopPropagation();
         const open=el.classList.toggle('nz-prism-expanded');
         toggle.setAttribute('aria-expanded',String(open));
         toggle.textContent=open?'PRISM ▴':'PRISM ▾';
+        toggle.title=open?'分析メニューを閉じます。':'投稿や記事を読み解く分析メニューを開きます。';
+        toggle.setAttribute('aria-label',open?'PRISMの分析メニューを閉じる':'PRISMの分析メニューを開く');
         if(!open)el.querySelectorAll('.nz-prism-menu.nz-prism-open').forEach(menu=>menu.classList.remove('nz-prism-open'));
       });
       el.append(toggle);
     }
-    if(!xCard){const name=document.createElement('strong');name.textContent='PRISM';el.append(name);}
+    if(!xCard){const name=document.createElement('strong');name.textContent='PRISM';name.title='投稿や記事をAIで読み解く分析ツールです。';el.append(name);}
     for(const [kind,label] of labels){
       const slot=document.createElement('div');slot.className='nz-prism-action';
-      const button=document.createElement('button');button.type='button';button.textContent=label;button.title=label;slot.append(button);
+      const button=document.createElement('button');button.type='button';button.textContent=label;button.title=descriptions[kind];slot.append(button);
       const menu=document.createElement('div');menu.className='nz-prism-menu';
       if(kind==='deep'){
-        const a=document.createElement('button');a.textContent='Googleで深掘り';a.addEventListener('click',e=>{e.stopPropagation();openSearch(P.searchQuery(kind,record));});menu.append(a);
-        const b=document.createElement('button');b.textContent='Perplexityで深掘り';b.addEventListener('click',e=>{e.stopPropagation();window.open('https://www.perplexity.ai/search?q='+encodeURIComponent(P.searchQuery(kind,record)),'_blank','noopener,noreferrer');});menu.append(b);
+        const a=document.createElement('button');a.textContent='Googleで深掘り';a.title='Googleで関連情報を検索します。';a.addEventListener('click',e=>{e.stopPropagation();openSearch(P.searchQuery(kind,record));});menu.append(a);
+        const b=document.createElement('button');b.textContent='Perplexityで深掘り';b.title='Perplexityで関連情報を検索します。';b.addEventListener('click',e=>{e.stopPropagation();window.open('https://www.perplexity.ai/search?q='+encodeURIComponent(P.searchQuery(kind,record)),'_blank','noopener,noreferrer');});menu.append(b);
       }else{
         for(const provider of ['chatgpt','perplexity','grok']){
           const b=document.createElement('button');b.type='button';b.textContent=P.SERVICES[provider].label;
+          b.title='分析文を入力欄にセットします。自動送信はしません。';
           b.addEventListener('click',e=>{e.stopPropagation();openAnalysis(kind,record,provider);});menu.append(b);
         }
       }
