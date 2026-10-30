@@ -51,60 +51,102 @@ const NZ_PRISM_DESTINATIONS={
   gemini:'https://gemini.google.com/app',
   claude:'https://claude.ai/new'
 };
-function nzPrismInjectDraft(prompt,provider) {
+async function nzPrismInjectDraft(prompt,provider) {
+  // Resolve only after the editor actually contains the draft. Never auto-submit.
   const wanted={
     chatgpt:['#prompt-textarea','[data-testid="composer-input"]','[contenteditable="true"][role="textbox"]','[contenteditable="true"][data-placeholder]'],
     perplexity:['[contenteditable="true"][role="textbox"]','textarea[placeholder]','[contenteditable="true"]'],
-    grok:['[contenteditable="true"][role="textbox"]','[contenteditable="true"][data-placeholder]','textarea[placeholder]'],
+    grok:[
+      'textarea[aria-label*="Grok" i]','textarea[placeholder*="Ask" i]',
+      '[data-testid="grokInput"] textarea','[data-testid="grok-input"]',
+      'div.tiptap.ProseMirror[contenteditable="true"]',
+      '.ProseMirror[contenteditable="true"]',
+      '[contenteditable="true"][role="textbox"]',
+      '[contenteditable="true"][data-placeholder]',
+      'div[contenteditable="true"]','[contenteditable="plaintext-only"]',
+      'textarea[placeholder]','textarea'
+    ],
     gemini:['rich-textarea [contenteditable="true"]','.input-area [contenteditable="true"]','[contenteditable="true"][role="textbox"]'],
     claude:['[contenteditable="true"][data-testid]','.ProseMirror[contenteditable="true"]','[contenteditable="true"][role="textbox"]','[contenteditable="true"]']
   };
-  const selectors=wanted[provider]||[];let attempts=0,completed=false;
+  const selectors=wanted[provider]||[];
+  const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+  const normalize=value=>String(value||'').replace(/\s+/g,' ').trim();
+  const expected=normalize(prompt);
+  const contents=el=>normalize(el.matches('textarea,input')?el.value:(el.innerText||el.textContent));
+  const hasDraft=el=>contents(el)===expected;
+  const isUsable=el=>{
+    if(!el?.isConnected||el.disabled||el.readOnly||el.getAttribute('aria-disabled')==='true')return false;
+    if(el.closest('[aria-hidden="true"],[inert]'))return false;
+    const css=getComputedStyle(el);
+    return css.display!=='none'&&css.visibility!=='hidden'&&el.getClientRects().length>0;
+  };
   const report=(message,failure=false)=>{
     const id='nz-prism-input-report';let node=document.getElementById(id);
     if(!node){node=document.createElement('aside');node.id=id;
       Object.assign(node.style,{position:'fixed',bottom:'16px',right:'16px',zIndex:'2147483647',background:'#17314c',color:'#fff',padding:'10px 14px',borderRadius:'8px',font:'13px system-ui,sans-serif',maxWidth:'370px',boxShadow:'0 3px 15px #0008'});
       document.body.append(node);
     }
-    node.replaceChildren();const label=document.createElement('span');label.textContent=message;node.append(label);
-    if(failure){const retry=document.createElement('button');retry.type='button';retry.textContent='再入力';retry.style.marginLeft='8px';retry.addEventListener('click',()=>{attempts=0;tryOnce()});node.append(retry);
-      const copy=document.createElement('button');copy.type='button';copy.textContent='コピー';copy.style.marginLeft='8px';copy.addEventListener('click',async()=>{try{await navigator.clipboard.writeText(prompt);label.textContent='文章をコピーしました。'}catch{label.textContent='コピーできませんでした。'}});node.append(copy);
-    } else setTimeout(()=>node.remove(),4800);
+    node.replaceChildren();
+    const label=document.createElement('span');label.textContent=message;node.append(label);
+    if(failure){
+      const retry=document.createElement('button');retry.type='button';retry.textContent='再入力';retry.style.marginLeft='8px';
+      retry.addEventListener('click',()=>{
+        label.textContent='入力を再試行しています…';
+        chrome.runtime.sendMessage({type:'NZ_PRISM_RETRY_DRAFT'}).catch(()=>{
+          label.textContent='再試行できませんでした。コピーして貼り付けてください。';
+        });
+      });
+      node.append(retry);
+      const copy=document.createElement('button');copy.type='button';copy.textContent='コピー';copy.style.marginLeft='8px';
+      copy.addEventListener('click',async()=>{
+        try{await navigator.clipboard.writeText(prompt);label.textContent='文章をコピーしました。'}
+        catch{label.textContent='コピーできませんでした。'}
+      });
+      node.append(copy);
+    }else setTimeout(()=>node.remove(),4800);
   };
-  function tryOnce(){
-    if(completed)return true;
-    attempts++;
+  async function tryOnce(){
+    const found=new Set();
     for(const selector of selectors){
-      const el=document.querySelector(selector);
-      if(!el||!el.isConnected||el.getAttribute('aria-disabled')==='true')continue;
-      if(el.offsetParent===null && getComputedStyle(el).position!=='fixed')continue;
-      try{
-        el.focus();
-        if(el.matches('textarea,input')){
-          const proto=el.tagName==='TEXTAREA'?HTMLTextAreaElement.prototype:HTMLInputElement.prototype;
-          Object.getOwnPropertyDescriptor(proto,'value').set.call(el,prompt);
-          el.dispatchEvent(new Event('input',{bubbles:true}));
-          el.dispatchEvent(new Event('change',{bubbles:true}));
-        }else{
-          const range=document.createRange();range.selectNodeContents(el);const sel=window.getSelection();sel.removeAllRanges();sel.addRange(range);
-          const used=document.execCommand('insertText',false,prompt);
-          if(!used || !(el.innerText||el.textContent||'').includes(prompt.slice(0,Math.min(35,prompt.length)))){
-            el.textContent=prompt;
+      for(const candidate of document.querySelectorAll(selector)){
+        const el=candidate.matches('textarea,input,[contenteditable="true"],[contenteditable="plaintext-only"]')
+          ?candidate:candidate.querySelector('textarea,input,[contenteditable="true"],[contenteditable="plaintext-only"]');
+        if(!el||found.has(el)||!isUsable(el))continue;
+        found.add(el);
+        if(hasDraft(el))return true;
+        // Do not overwrite a draft already entered by the user.
+        if(contents(el))continue;
+        try{
+          el.focus();
+          if(el.matches('textarea,input')){
+            const proto=el.tagName==='TEXTAREA'?HTMLTextAreaElement.prototype:HTMLInputElement.prototype;
+            Object.getOwnPropertyDescriptor(proto,'value').set.call(el,prompt);
             el.dispatchEvent(new InputEvent('input',{bubbles:true,inputType:'insertText',data:prompt}));
+            el.dispatchEvent(new Event('change',{bubbles:true}));
+          }else{
+            // Avoid direct textContent writes that bypass ProseMirror / TipTap state.
+            const range=document.createRange();range.selectNodeContents(el);
+            const selection=window.getSelection();selection.removeAllRanges();selection.addRange(range);
+            if(!document.execCommand('insertText',false,prompt))continue;
           }
-        }
-        if((el.value||el.innerText||el.textContent||'').includes(prompt.slice(0,Math.min(35,prompt.length)))){
-          completed=true;report('PRISMの分析文を入力しました。確認してから送信してね。');return true;
-        }
-      }catch(e){/* another editor might be mounted later */}
+          await sleep(350);
+          if(el.isConnected&&hasDraft(el))return true;
+        }catch(e){/* The SPA may still be replacing its composer. */}
+      }
     }
     return false;
   }
-  if(tryOnce())return true;
-  const interval=setInterval(()=>{
-    if(tryOnce() || attempts>=45){clearInterval(interval);if(!completed)report('自動入力できませんでした。ログインや入力欄の状態を確認してください。',true);}
-  },450);
-  return true;
+  // The editor can become available well after the document load event.
+  for(let attempt=0;attempt<75;attempt++){
+    if(await tryOnce()){
+      report('PRISMの分析文を入力しました。確認してから送信してね。');
+      return {ok:true};
+    }
+    await sleep(500);
+  }
+  report('自動入力できませんでした。ログインや入力欄の状態を確認してください。',true);
+  return {ok:false,reason:'composer-not-ready'};
 }
 // Session-scoped pending drafts survive MV3 service-worker suspension.
 // The top-level tab event is registered persistently, not only after a click.
@@ -117,16 +159,26 @@ async function nzPrismTryTab(tabId){
   if(Date.now()-job.created>10*60*1000){await chrome.storage.session.remove(key);return;}
   const destination=NZ_PRISM_DESTINATIONS[job.provider];if(!destination){await chrome.storage.session.remove(key);return;}
   let tab;try{tab=await chrome.tabs.get(tabId)}catch{await chrome.storage.session.remove(key);return;}
-  if(tab.status!=='complete'||!tab.url?.startsWith(destination.slice(0,destination.indexOf('/',8)+1)))return;
+  // Compare the exact origin; a redirect must not consume the pending draft.
+  if(tab.status!=='complete')return;
+  try{if(new URL(tab.url).origin!==new URL(destination).origin)return;}catch{return;}
   nzPrismRunning.add(tabId);
   try{
-    await chrome.scripting.executeScript({target:{tabId},func:nzPrismInjectDraft,args:[job.prompt,job.provider]});
-    await chrome.storage.session.remove(key);
+    const results=await chrome.scripting.executeScript({target:{tabId},func:nzPrismInjectDraft,args:[job.prompt,job.provider]});
+    // Only remove the saved draft when the target editor accepted it.
+    if(results?.[0]?.result?.ok===true)await chrome.storage.session.remove(key);
   }catch(err){console.debug('PRISM editor not ready:',String(err));}
   finally{nzPrismRunning.delete(tabId)}
 }
 chrome.tabs.onUpdated.addListener((tabId,changeInfo)=>{
   if(changeInfo.status==='complete')nzPrismTryTab(tabId).catch(console.warn);
+});
+chrome.runtime.onMessage.addListener((request,sender,sendResponse)=>{
+  if(request?.type!=='NZ_PRISM_RETRY_DRAFT')return;
+  if(!sender.tab?.id){sendResponse({ok:false,error:'タブが不明です'});return false;}
+  nzPrismTryTab(sender.tab.id).catch(console.warn);
+  sendResponse({ok:true});
+  return false;
 });
 chrome.tabs.onRemoved.addListener(tabId=>chrome.storage.session.remove('nzPrismDraft_'+tabId).catch(()=>{}));
 chrome.runtime.onMessage.addListener((request,_sender,sendResponse)=>{
